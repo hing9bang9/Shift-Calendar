@@ -1,7 +1,7 @@
 // ===== Service Worker — 교대 캘린더 오프라인 실행용 =====
 // 설치: 캘린더 파일(index.html)과 자기 자신(sw.js)을 캐시
 // 이후 오프라인에서도 홈 화면 앱 아이콘으로 실행 가능
-const CACHE = "shift-calendar-v1";
+const CACHE = "shift-calendar-v2";
 const ASSETS = ["./", "./index.html"];
 
 self.addEventListener("install", (e) => {
