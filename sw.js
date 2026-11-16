@@ -1,7 +1,7 @@
 // ===== Service Worker — 교대 캘린더 오프라인 실행용 =====
-// 설치: 캘린더 파일(index.html)과 자기 자신(sw.js)을 캐시
-// 이후 오프라인에서도 홈 화면 앱 아이콘으로 실행 가능
-const CACHE = "shift-calendar-v2";
+// 네트워크 우선(network-first): 온라인이면 항상 최신 페이지를 받고,
+// 오프라인이면 캐시로 실행. (캐시 우선은 새 버전이 앱에 반영되지 않는 문제가 있음)
+const CACHE = "shift-calendar-v3";
 const ASSETS = ["./", "./index.html"];
 
 self.addEventListener("install", (e) => {
@@ -20,8 +20,16 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // 캐시 우선(cache-first) — 파일이 단순하고 업데이트는 캐시 버전 올려서 갱신
+  // 같은 출처(GitHub Pages)의 GET 요청만 처리
+  if (e.request.method !== "GET" || !e.request.url.startsWith(self.location.origin)) return;
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request))
+    fetch(e.request)
+      .then((res) => {
+        // 성공 시 캐시 갱신 (다음 오프라인 대비)
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        return res;
+      })
+      .catch(() => caches.match(e.request).then((hit) => hit || caches.match("./index.html")))
   );
 });
